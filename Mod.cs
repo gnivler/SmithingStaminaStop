@@ -54,10 +54,10 @@ namespace Smithing_Stamina_Stop
                     if (!skip &&
                         MobileParty.MainParty.CurrentSettlement != null &&
                         MobileParty.MainParty.CurrentSettlement.IsTown &&
-                        __instance.GetHeroCraftingStamina(Hero.MainHero) >= 100)
+                        __instance.GetHeroCraftingStamina(Hero.MainHero) >= __instance.GetMaxHeroCraftingStamina(Hero.MainHero))
                     {
                         Log("HourlyTick");
-                        MessageManager.DisplayMessage("Smithing stamina is 100");
+                        MessageManager.DisplayMessage($"Smithing stamina is {__instance.GetMaxHeroCraftingStamina(Hero.MainHero)}");
                         GameMenu.SwitchToMenu("town");
                         Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
                     }
