@@ -4,7 +4,10 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.ViewModelCollection.GameMenu;
+using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
+using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
 // ReSharper disable InconsistentNaming
@@ -14,16 +17,14 @@ namespace Smithing_Stamina_Stop
     public class Mod : MBSubModuleBase
     {
         private static readonly Harmony harmony = new Harmony("ca.gnivler.bannerlord.SmithingStaminaStop");
-        
+        private static bool stopWhenFull;
+
         protected override void OnSubModuleLoad()
         {
             try
             {
-                //Harmony.DEBUG = true;
                 Log("Startup " + DateTime.Now.ToShortTimeString());
-                ManualPatches();
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
-                //Harmony.DEBUG = false;
             }
             catch (Exception e)
             {
@@ -31,15 +32,9 @@ namespace Smithing_Stamina_Stop
             }
         }
 
-        private static void ManualPatches()
+        private static void Log(object input)
         {
-            try
-            {
-            }
-            catch (Exception e)
-            {
-                Log(e);
-            }
+            //FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
         }
 
         [HarmonyPatch(typeof(CraftingCampaignBehavior), "HourlyTick")]
@@ -47,31 +42,40 @@ namespace Smithing_Stamina_Stop
         {
             private static void Postfix(CraftingCampaignBehavior __instance)
             {
-                try
+                if (stopWhenFull &&
+                    MobileParty.MainParty.CurrentSettlement != null &&
+                    MobileParty.MainParty.CurrentSettlement.IsTown &&
+                    __instance.GetHeroCraftingStamina(Hero.MainHero) >= 100)
                 {
-                    // time will stop at 100 stamina unless holding shift 
-                    var skip = Input.IsKeyDown(InputKey.LeftShift) || Input.IsKeyDown(InputKey.RightShift);
-                    if (!skip &&
-                        MobileParty.MainParty.CurrentSettlement != null &&
-                        MobileParty.MainParty.CurrentSettlement.IsTown &&
-                        __instance.GetHeroCraftingStamina(Hero.MainHero) >= 100)
-                    {
-                        Log("HourlyTick");
-                        MessageManager.DisplayMessage("Smithing stamina is 100");
-                        GameMenu.SwitchToMenu("town");
-                        Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
+                    stopWhenFull = false;
+                    InformationManager.AddQuickInformation(new TextObject("Full stamina"));
+                    GameMenu.SwitchToMenu("town");
+                    Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
                 }
             }
         }
 
-        private static void Log(object input)
+        [HarmonyPatch(typeof(GameMenuItemVM), "ExecuteAction")]
+        public class GameMenuItemVMExecuteActionPatch
         {
-            //FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
+            private static void Postfix(GameMenuItemVM __instance)
+            {
+                Log(__instance.OptionID);
+                if (__instance.OptionID == "town_wait" &&
+                    (Input.IsKeyDown(InputKey.LeftShift) || Input.IsKeyDown(InputKey.RightShift)))
+                {
+                    InformationManager.AddQuickInformation(new TextObject("Waiting until stamina is full"));
+                    stopWhenFull = true;
+                }
+
+                if (stopWhenFull &&
+                    __instance.OptionID == "wait_leave" &&
+                    Hero.MainHero.CurrentSettlement.IsTown)
+                {
+                    InformationManager.AddQuickInformation(new TextObject("Cancelling stamina stop"));
+                    stopWhenFull = false;
+                }
+            }
         }
     }
 }

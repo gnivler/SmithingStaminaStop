@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smithing Stamina Stop", "Smithing Stamina Stop.csproj", "{637F4AC9-A0CB-48C1-9CE4-FA6A6CFD6415}"
+Project("{C3B48E78-3EFD-42C3-95C8-F833B70F2A28}") = "Smithing Stamina Stop", "Smithing Stamina Stop.csproj", "{D2F0C99B-4425-4B81-A22B-4762B48F4104}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
