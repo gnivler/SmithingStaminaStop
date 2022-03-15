@@ -34,7 +34,9 @@ namespace Smithing_Stamina_Stop
 
         private static void Log(object input)
         {
-            //FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
+#if DEBUG
+            FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
+#endif
         }
 
         [HarmonyPatch(typeof(CraftingCampaignBehavior), "HourlyTick")]
@@ -42,20 +44,26 @@ namespace Smithing_Stamina_Stop
         {
             private static void Postfix(CraftingCampaignBehavior __instance)
             {
-                if (stopWhenFull &&
+                if (stopWhenFull && 
                     MobileParty.MainParty.CurrentSettlement != null &&
-                    MobileParty.MainParty.CurrentSettlement.IsTown &&
-                    __instance.GetHeroCraftingStamina(Hero.MainHero) >= 100)
+                    MobileParty.MainParty.CurrentSettlement.IsTown)
                 {
-                    stopWhenFull = false;
-                    InformationManager.AddQuickInformation(new TextObject("Full stamina"));
-                    GameMenu.SwitchToMenu("town");
-                    Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
+                    foreach (Hero hero in Helpers.CraftingHelper.GetAvailableHeroesForCrafting())
+                    {
+                        if (__instance.GetHeroCraftingStamina(hero) >= __instance.GetMaxHeroCraftingStamina(hero))
+                        {
+                            stopWhenFull = false;
+                            InformationManager.AddQuickInformation(new TextObject("Full stamina"));
+                            GameMenu.SwitchToMenu("town");
+                            Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        [HarmonyPatch(typeof(GameMenuItemVM), "ExecuteAction")]
+        [HarmonyPatch(typeof(GameMenuItemVM), nameof(GameMenuItemVM.ExecuteAction))]
         public class GameMenuItemVMExecuteActionPatch
         {
             private static void Postfix(GameMenuItemVM __instance)
