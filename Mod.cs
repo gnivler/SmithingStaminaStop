@@ -2,12 +2,12 @@
 using System.Reflection;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.GameMenus;
-using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.ViewModelCollection.GameMenu;
-using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
-using TaleWorlds.Localization;
+using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 // ReSharper disable InconsistentNaming
@@ -31,7 +31,7 @@ namespace Smithing_Stamina_Stop
                 Log(e);
             }
         }
-
+        
         private static void Log(object input)
         {
             //FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
@@ -45,10 +45,10 @@ namespace Smithing_Stamina_Stop
                 if (stopWhenFull &&
                     MobileParty.MainParty.CurrentSettlement != null &&
                     MobileParty.MainParty.CurrentSettlement.IsTown &&
-                    __instance.GetHeroCraftingStamina(Hero.MainHero) >= 100)
+                    __instance.GetHeroCraftingStamina(Hero.MainHero) >=  __instance.GetMaxHeroCraftingStamina(Hero.MainHero))
                 {
                     stopWhenFull = false;
-                    InformationManager.AddQuickInformation(new TextObject("Full stamina"));
+                    InformationManager.DisplayMessage(new InformationMessage("Full stamina"));        
                     GameMenu.SwitchToMenu("town");
                     Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
                 }
@@ -64,7 +64,7 @@ namespace Smithing_Stamina_Stop
                 if (__instance.OptionID == "town_wait" &&
                     (Input.IsKeyDown(InputKey.LeftShift) || Input.IsKeyDown(InputKey.RightShift)))
                 {
-                    InformationManager.AddQuickInformation(new TextObject("Waiting until stamina is full"));
+                    InformationManager.DisplayMessage(new InformationMessage("Waiting until stamina is full"));
                     stopWhenFull = true;
                 }
 
@@ -72,7 +72,7 @@ namespace Smithing_Stamina_Stop
                     __instance.OptionID == "wait_leave" &&
                     Hero.MainHero.CurrentSettlement.IsTown)
                 {
-                    InformationManager.AddQuickInformation(new TextObject("Cancelling stamina stop"));
+                    InformationManager.DisplayMessage(new InformationMessage("Cancelling stamina stop"));
                     stopWhenFull = false;
                 }
             }
