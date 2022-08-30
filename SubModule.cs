@@ -6,15 +6,16 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.ViewModelCollection.GameMenu;
+using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 // ReSharper disable InconsistentNaming
 
-namespace Smithing_Stamina_Stop
+namespace SmithingStaminaStop
 {
-    public class Mod : MBSubModuleBase
+    public class SubModule : MBSubModuleBase
     {
         private static readonly Harmony harmony = new Harmony("ca.gnivler.bannerlord.SmithingStaminaStop");
         private static bool stopWhenFull;
@@ -31,7 +32,7 @@ namespace Smithing_Stamina_Stop
                 Log(e);
             }
         }
-        
+
         private static void Log(object input)
         {
             //FileLog.Log($"[Smithing Stamina Stop] {input ?? "null"}");
@@ -45,10 +46,10 @@ namespace Smithing_Stamina_Stop
                 if (stopWhenFull &&
                     MobileParty.MainParty.CurrentSettlement != null &&
                     MobileParty.MainParty.CurrentSettlement.IsTown &&
-                    __instance.GetHeroCraftingStamina(Hero.MainHero) >=  __instance.GetMaxHeroCraftingStamina(Hero.MainHero))
+                    __instance.GetHeroCraftingStamina(Hero.MainHero) >= __instance.GetMaxHeroCraftingStamina(Hero.MainHero))
                 {
                     stopWhenFull = false;
-                    InformationManager.DisplayMessage(new InformationMessage("Full stamina"));        
+                    InformationManager.DisplayMessage(new InformationMessage("Full stamina"));
                     GameMenu.SwitchToMenu("town");
                     Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
                 }
